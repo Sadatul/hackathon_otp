@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hackathon
+  name: {{ deployment.name }}
+  namespace: default
+spec:
+  replicas: {{ deployment.replicas }}
+  minReadySeconds: 45
+  selector:
+    matchLabels:
+      app: {{ deployment.name }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ deployment.name }}
+    spec:
+      serviceAccountName: "ksa"
+      containers:
+        - name: {{ deployment.name }}
+          image: {{ deployment.image }}:{{ deployment.tag }}
+          imagePullPolicy: Always
+          ports:
+            - name: liveness-port
+              containerPort: {{ deployment.port }}
+          env:
+            - name: TZ
+              value: Asia/Dhaka
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://localhost:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "{{ deployment.name }}_main"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
+            - name: GOOGLE_CLOUD_PROJECT
+              value: "hackathon-438400"
+#            - name: OTEL_LOGS_EXPORTER
+#              value: "otlp"
+#            - name: OTEL_LOGS_EXPORT_INTERVAL
+#              value: "5000"
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: REDIS_SERVICE_HOST
+                  name: main-config
+            - name: REDIS_PORT
+              value: '6379'
+            - name: FRONTEND_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: FRONTEND_HOST
+                  name: main-config
+            - name: BACKEND_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: BACKEND_HOST
+                  name: main-config
+#            - name: GOOGLE_APPLICATION_CREDENTIALS
+#              value: /secrets/sm-sa.json
+#          volumeMounts:
+#            - name: sa-secret-volume
+#              mountPath: /secrets/
+#              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /v1/hello/healthy
+              port: liveness-port
+            failureThreshold: 5
+            periodSeconds: 600
+            initialDelaySeconds: 60
+          livenessProbe:
+            httpGet:
+              path: /v1/hello/healthy
+              port: liveness-port
+            failureThreshold: 5
+            periodSeconds: 600
+            initialDelaySeconds: 60
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.4
+          ports:
+            - containerPort: 3306
+          args:
+            - "--private-ip"
+            - "--structured-logs"
+            - "--port=3306"
+            - "hackathon-438400:asia-southeast1:{{ deployment.database }}"
+#            - "--credentials-file=/secrets/sm-sa.json"
+          securityContext:
+            runAsNonRoot: true
+#          volumeMounts:
+#            - name: sa-secret-volume
+#              mountPath: /secrets/
+#              readOnly: true
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu:    "50m"
+        - name: otelcol
+          image: otel/opentelemetry-collector-contrib:0.110.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
+          env:
+            - name: GOOGLE_CLOUD_PROJECT
+              value: "hackathon-438400"
+            - name: GOOGLE_CLOUD_QUOTA_PROJECT
+              value: "hackathon-438400"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/otelcol-contrib/config.yaml
+              subPath: config.yaml
+      volumes:
+      - name: config-volume
+        configMap:
+          name: otel-config
+          items:
+          - key: config.yaml
+            path: config.yaml
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hackathon
+  name: {{ deployment.name }}
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: {{ deployment.port }}
+      protocol: TCP
+      targetPort: {{ deployment.port }}
+  selector:
+    app: {{ deployment.name }}
+  sessionAffinity: ClientIP
+  type: ClusterIP

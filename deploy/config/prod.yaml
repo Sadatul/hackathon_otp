@@ -1,0 +1,8 @@
+deployment:
+  name: hackathonauthservice
+  replicas: 1
+  image: sadatul/hackathon_authservice_prod
+  tag: <!IMAGE>
+  port: 8100
+  host: api.prod.pinklifeline.xyz
+  database: database-instance-prod

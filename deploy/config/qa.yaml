@@ -1,0 +1,9 @@
+deployment:
+  name: hackathon_authservice
+  replicas: 1
+  image: sadatul/hackathon_authservice_qa
+  tag: 0.0.1-RELEASE
+  port: 8100
+  host: api.qa.pinklifeline.xyz
+  database: database-instance-qa
+#  "hackathon-438400:asia-southeast1:database-instance-qa"

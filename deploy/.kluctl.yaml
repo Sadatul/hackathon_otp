@@ -1,0 +1,15 @@
+targets:
+  - name: qa
+    args:
+      environment: qa
+    context: gke_hackathon-438400_asia-southeast1-a_kubernetese-cluster-qa
+
+  - name: prod
+    args:
+      environment: prod
+    context: gke_hackathon-438400_asia-southeast1-a_kubernetese-cluster-prod
+
+args:
+  - name: environment
+
+discriminator: kluctl-{{ target.name }}

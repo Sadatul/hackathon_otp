@@ -1,0 +1,12 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: auth-service-monitor
+spec:
+  selector:
+    matchLabels:
+      app: {{ deployment.name }}
+  endpoints:
+    - port: {{ deployment.port }}
+      path: /actuator/prometheus
+      interval: 30s
