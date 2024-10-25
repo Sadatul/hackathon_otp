@@ -1,8 +1,8 @@
 deployment:
-  name: hackathonauthservice
+  name: hackathonotpservice
   replicas: 1
-  image: sadatul/hackathon_authservice_prod
+  image: sadatul/hackathon_otp_service
   tag: <!IMAGE>
-  port: 8100
+  port: 3100
   host: api.prod.pinklifeline.xyz
   database: database-instance-prod

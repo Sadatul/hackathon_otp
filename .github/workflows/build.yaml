@@ -37,30 +37,30 @@ jobs:
             tags: sadatul/hackathon_otp_service:${{ steps.get_version.outputs.VERSION }}
             cache-from: type=gha
             cache-to: type=gha,mode=max
-    # deploy:
-    #     runs-on: ubuntu-latest
-    #     needs: build
-    #     steps:
-    #     - name: Checkout repository
-    #       uses: actions/checkout@v4
-    #     - name: Google Auth
-    #       id: auth
-    #       uses: google-github-actions/auth@v2
-    #       with:
-    #         credentials_json: ${{ secrets.GCP_SA_KEY }}
-    #     - name: Set up Cloud SDK
-    #       uses: google-github-actions/setup-gcloud@v2
-    #     - name: Get GKE credentials
-    #       uses: google-github-actions/get-gke-credentials@v2
-    #       with:
-    #         cluster_name: "kubernetese-cluster-prod"
-    #         location: "asia-southeast1-a"
-    #     - run: kubectl config get-contexts
-    #     - name: Install Kluctl
-    #       run: curl -s https://kluctl.io/install.sh | bash
-    #     - name: Deploy with Kluctl
-    #       working-directory: deploy
-    #       continue-on-error: true
-    #       run: |
-    #         sed -i "s/<\!IMAGE>/${{ needs.build.outputs.version }}/g" config/prod.yaml
-    #         kluctl deploy -t prod -y
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+        - name: Google Auth
+          id: auth
+          uses: google-github-actions/auth@v2
+          with:
+            credentials_json: ${{ secrets.GCP_SA_KEY }}
+        - name: Set up Cloud SDK
+          uses: google-github-actions/setup-gcloud@v2
+        - name: Get GKE credentials
+          uses: google-github-actions/get-gke-credentials@v2
+          with:
+            cluster_name: "kubernetese-cluster-prod"
+            location: "asia-southeast1-a"
+        - run: kubectl config get-contexts
+        - name: Install Kluctl
+          run: curl -s https://kluctl.io/install.sh | bash
+        - name: Deploy with Kluctl
+          working-directory: deploy
+          continue-on-error: true
+          run: |
+            sed -i "s/<\!IMAGE>/${{ needs.build.outputs.version }}/g" config/prod.yaml
+            kluctl deploy -t prod -y
