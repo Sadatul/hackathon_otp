@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>OTP Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .otp-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .otp-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+        .warning {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="otp-container">
+        <h2>Your OTP Verification Code</h2>
+        <p>Please use the following OTP to verify your action:</p>
+        <div class="otp-code">{{otp}}</div>
+        <p>This OTP will expire in {{expiryMinutes}} minutes.</p>
+        <p class="warning">Please do not share this OTP with anyone.</p>
+    </div>
+    <p>If you didn't request this OTP, please ignore this email.</p>
+</body>
+</html>
